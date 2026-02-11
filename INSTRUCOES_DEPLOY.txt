@@ -1,0 +1,59 @@
+╔══════════════════════════════════════════════════════════════╗
+║          🚀 DEPLOY DIRETO - 3 PASSOS                         ║
+╚══════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────┐
+│ PASSO 1: SUPABASE - Criar Tabela                             │
+└──────────────────────────────────────────────────────────────┘
+
+URL: https://supabase.com/dashboard/project/qmhldxyagakxeywkszkq/editor
+
+→ Clique "SQL Editor"
+→ Cole e execute:
+
+CREATE TABLE IF NOT EXISTS status_checks (
+    id TEXT PRIMARY KEY,
+    client_name TEXT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_status_checks_timestamp ON status_checks(timestamp DESC);
+ALTER TABLE status_checks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Enable all access for status_checks" ON status_checks;
+CREATE POLICY "Enable all access for status_checks" ON status_checks FOR ALL USING (true) WITH CHECK (true);
+
+┌──────────────────────────────────────────────────────────────┐
+│ PASSO 2: RAILWAY - Deploy Backend                            │
+└──────────────────────────────────────────────────────────────┘
+
+URL: https://railway.app
+
+1. New Project → Deploy from GitHub repo
+2. Selecione: r3nomedeiros-oss/v2
+3. Settings:
+   - Root Directory: backend
+   - Start Command: uvicorn server:app --host 0.0.0.0 --port $PORT
+4. Variables:
+   SUPABASE_URL=https://qmhldxyagakxeywkszkq.supabase.co
+   SUPABASE_KEY=sbp_39477759ac6132b9b6604a530e2862071b09ef43
+   CORS_ORIGINS=*
+5. COPIE A URL DO BACKEND (importante para próximo passo)
+
+┌──────────────────────────────────────────────────────────────┐
+│ PASSO 3: VERCEL - Deploy Frontend                            │
+└──────────────────────────────────────────────────────────────┘
+
+URL: https://vercel.com
+
+1. Add New → Project → Import r3nomedeiros-oss/v2
+2. Configure:
+   - Framework: Create React App
+   - Root Directory: frontend
+   - Build: yarn build
+   - Output: build
+3. Environment Variables:
+   REACT_APP_BACKEND_URL=<COLE_A_URL_DO_RAILWAY_AQUI>
+4. Deploy!
+
+╔══════════════════════════════════════════════════════════════╗
+║ ✅ PRONTO! Aplicação no ar!                                  ║
+╚══════════════════════════════════════════════════════════════╝

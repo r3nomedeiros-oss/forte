@@ -1,0 +1,8 @@
+node_modules
+backend
+tests
+test_reports
+.git
+*.pyc
+__pycache__
+.env.local
