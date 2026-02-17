@@ -212,11 +212,7 @@ def gerar_relatorio():
             return jsonify({
                 "producao_total": 0, "perdas_total": 0, "percentual_perdas": 0,
                 "dias_produzidos": 0, "media_diaria": 0, "data_inicio": data_inicio, "data_fim": data_fim,
-                "por_turno": {
-                    "A": {"producao": 0, "perdas": 0, "media_diaria": 0, "percentual_perdas": 0, "dias_produzidos": 0},
-                    "B": {"producao": 0, "perdas": 0, "media_diaria": 0, "percentual_perdas": 0, "dias_produzidos": 0},
-                    "Administrativo": {"producao": 0, "perdas": 0, "media_diaria": 0, "percentual_perdas": 0, "dias_produzidos": 0}
-                }
+                "por_turno": {}
             })
         
         producao_total = 0
@@ -259,7 +255,7 @@ def gerar_relatorio():
                     "dias_produzidos": len(s["dias"]),
                     "media_diaria": round(s["prod"] / len(s["dias"]) if s["dias"] else 0, 2),
                     "percentual_perdas": round((s["perd"] / s["prod"] * 100) if s["prod"] > 0 else 0, 2)
-                } for t, s in stats_turno.items()
+                } for t, s in stats_turno.items() if s["prod"] > 0 or s["perd"] > 0
             }
         }
         return jsonify(relatorio)
