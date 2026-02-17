@@ -19,7 +19,8 @@ function Lancamentos() {
 
   const carregarLancamentos = async () => {
     try {
-      const response = await axios.get(`${API_URL}/lancamentos`);
+      // Adiciona timestamp para evitar cache do navegador
+      const response = await axios.get(`${API_URL}/lancamentos?t=${new Date().getTime()}`);
       setLancamentos(response.data);
     } catch (error) {
       console.error('Erro ao carregar lançamentos:', error);

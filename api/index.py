@@ -90,7 +90,9 @@ def listar_lancamentos():
         lancamentos = response.data
         
         if not lancamentos:
-            return jsonify([])
+            res = jsonify([])
+            res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            return res
             
         result = []
         for lanc in lancamentos:
@@ -103,7 +105,9 @@ def listar_lancamentos():
                 'percentual_perdas': round(percentual_perdas, 2)
             })
         
-        return jsonify(result)
+        res = jsonify(result)
+        res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        return res
     
     except Exception as e:
         print(f"Erro ao listar lançamentos: {str(e)}")
@@ -256,7 +260,9 @@ def gerar_relatorio():
                 } for ref, s in stats_ref.items()
             }
         }
-        return jsonify(relatorio)
+        res = jsonify(relatorio)
+        res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        return res
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

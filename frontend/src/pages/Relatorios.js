@@ -41,6 +41,9 @@ function Relatorios() {
         url += `&referencia_producao=${referenciaProducao}`;
       }
       
+      // Adiciona timestamp para evitar cache
+      url += `&t=${new Date().getTime()}`;
+      
       const response = await axios.get(url);
       setRelatorio(response.data);
     } catch (error) {
