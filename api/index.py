@@ -54,8 +54,28 @@ def criar_lancamento():
             }
             itens.append(item_obj)
         
-        if itens:
-            supabase.table("itens_producao").insert(itens).execute()
+        # Atualizar o objeto lancamento com os itens e totais
+        producao_total = sum(float(item['producao_kg'] or 0) for item in itens)
+        perdas_total = float(lancamento['orelha_kg'] or 0) + float(lancamento['aparas_kg'] or 0)
+        
+        # Como já inserimos, vamos atualizar ou inserir tudo de uma vez? 
+        # Melhor deletar o insert anterior e fazer um único insert completo
+        # ou apenas atualizar o registro que acabamos de criar.
+        
+        update_data = {
+            "itens": [
+                {
+                    "formato": i['formato'],
+                    "cor": i['cor'],
+                    "pacote_kg": i['pacote_kg'],
+                    "producao_kg": i['producao_kg']
+                } for i in itens
+            ],
+            "producao_total": producao_total,
+            "perdas_total": perdas_total
+        }
+        
+        supabase.table("lancamentos").update(update_data).eq("id", lancamento_id).execute()
         
         return jsonify({"success": True, "id": lancamento_id}), 201
     
@@ -66,38 +86,20 @@ def criar_lancamento():
 @app.route('/api/lancamentos', methods=['GET'])
 def listar_lancamentos():
     try:
-        # Otimização: buscar tudo de uma vez para evitar N+1 queries
         response = supabase.table("lancamentos").select("*").order("data", desc=True).order("hora", desc=True).execute()
         lancamentos = response.data
         
         if not lancamentos:
             return jsonify([])
-
-        # Buscar todos os itens dos lançamentos listados
-        lanc_ids = [l['id'] for l in lancamentos]
-        itens_response = supabase.table("itens_producao").select("*").in_("lancamento_id", lanc_ids).execute()
-        
-        # Agrupar itens por lancamento_id
-        itens_por_lanc = {}
-        for item in itens_response.data:
-            lid = item['lancamento_id']
-            if lid not in itens_por_lanc:
-                itens_por_lanc[lid] = []
-            itens_por_lanc[lid].append(item)
             
         result = []
         for lanc in lancamentos:
-            itens = itens_por_lanc.get(lanc['id'], [])
-            
-            producao_total = sum(float(item['producao_kg'] or 0) for item in itens)
-            perdas_total = float(lanc['orelha_kg'] or 0) + float(lanc['aparas_kg'] or 0)
+            producao_total = float(lanc.get('producao_total') or 0)
+            perdas_total = float(lanc.get('perdas_total') or 0)
             percentual_perdas = (perdas_total / producao_total * 100) if producao_total > 0 else 0
             
             result.append({
                 **lanc,
-                'itens': itens,
-                'producao_total': round(producao_total, 2),
-                'perdas_total': round(perdas_total, 2),
                 'percentual_perdas': round(percentual_perdas, 2)
             })
         
@@ -114,10 +116,7 @@ def obter_lancamento(lancamento_id):
         if not response.data:
             return jsonify({"error": "Lançamento não encontrado"}), 404
         
-        lancamento = response.data[0]
-        itens_response = supabase.table("itens_producao").select("*").eq("lancamento_id", lancamento_id).execute()
-        lancamento['itens'] = itens_response.data
-        return jsonify(lancamento)
+        return jsonify(response.data[0])
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -140,23 +139,25 @@ def atualizar_lancamento(lancamento_id):
         # Atualizar dados básicos
         supabase.table("lancamentos").update(lancamento_update).eq("id", lancamento_id).execute()
         
-        # Deletar itens antigos e inserir novos (abordagem segura)
-        supabase.table("itens_producao").delete().eq("lancamento_id", lancamento_id).execute()
-        
-        itens = []
+        itens_list = []
         for item in data['itens']:
             item_obj = {
-                "id": str(uuid.uuid4()),
-                "lancamento_id": lancamento_id,
                 "formato": item['formato'],
                 "cor": item['cor'],
                 "pacote_kg": float(item['pacote_kg'] or 0),
                 "producao_kg": float(item['producao_kg'] or 0)
             }
-            itens.append(item_obj)
+            itens_list.append(item_obj)
         
-        if itens:
-            supabase.table("itens_producao").insert(itens).execute()
+        producao_total = sum(i['producao_kg'] for i in itens_list)
+        perdas_total = float(data['orelha_kg'] or 0) + float(data['aparas_kg'] or 0)
+        
+        lancamento_update["itens"] = itens_list
+        lancamento_update["producao_total"] = producao_total
+        lancamento_update["perdas_total"] = perdas_total
+        
+        # Atualizar dados básicos e itens JSONB
+        supabase.table("lancamentos").update(lancamento_update).eq("id", lancamento_id).execute()
         
         return jsonify({"success": True})
     
@@ -167,9 +168,6 @@ def atualizar_lancamento(lancamento_id):
 @app.route('/api/lancamentos/<lancamento_id>', methods=['DELETE'])
 def deletar_lancamento(lancamento_id):
     try:
-        # Itens são deletados automaticamente se houver Cascade no banco, 
-        # mas vamos deletar manualmente para garantir.
-        supabase.table("itens_producao").delete().eq("lancamento_id", lancamento_id).execute()
         supabase.table("lancamentos").delete().eq("id", lancamento_id).execute()
         return jsonify({"success": True})
     except Exception as e:
@@ -221,15 +219,6 @@ def gerar_relatorio():
                 }
             })
         
-        lanc_ids = [l['id'] for l in lancamentos]
-        itens_response = supabase.table("itens_producao").select("*").in_("lancamento_id", lanc_ids).execute()
-        
-        itens_dict = {}
-        for item in itens_response.data:
-            lid = item['lancamento_id']
-            if lid not in itens_dict: itens_dict[lid] = []
-            itens_dict[lid].append(item)
-        
         producao_total = 0
         perdas_total = 0
         dias_unicos = set()
@@ -240,9 +229,8 @@ def gerar_relatorio():
         }
         
         for lanc in lancamentos:
-            itens = itens_dict.get(lanc['id'], [])
-            prod_lanc = sum(float(item['producao_kg'] or 0) for item in itens)
-            perd_lanc = float(lanc['orelha_kg'] or 0) + float(lanc['aparas_kg'] or 0)
+            prod_lanc = float(lanc.get('producao_total') or 0)
+            perd_lanc = float(lanc.get('perdas_total') or 0)
             
             producao_total += prod_lanc
             perdas_total += perd_lanc
