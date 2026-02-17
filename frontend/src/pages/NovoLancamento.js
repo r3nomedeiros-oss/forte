@@ -11,7 +11,7 @@ function NovoLancamento() {
   
   const [lancamento, setLancamento] = useState({
     data: new Date().toISOString().split('T')[0],
-    turno: 'A',
+    turno: 'Administrativo',
     hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     orelha_kg: '',
     aparas_kg: '',
@@ -97,8 +97,6 @@ function NovoLancamento() {
                 onChange={(e) => setLancamento({...lancamento, turno: e.target.value})}
                 required
               >
-                <option value="A">Turno A</option>
-                <option value="B">Turno B</option>
                 <option value="Administrativo">Administrativo</option>
               </select>
             </div>

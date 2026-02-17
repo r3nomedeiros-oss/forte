@@ -13,7 +13,7 @@ function EditarLancamento() {
   
   const [lancamento, setLancamento] = useState({
     data: '',
-    turno: 'A',
+    turno: 'Administrativo',
     hora: '',
     orelha_kg: '',
     aparas_kg: '',
@@ -112,8 +112,6 @@ function EditarLancamento() {
                 onChange={(e) => setLancamento({...lancamento, turno: e.target.value})}
                 required
               >
-                <option value="A">Turno A</option>
-                <option value="B">Turno B</option>
                 <option value="Administrativo">Administrativo</option>
               </select>
             </div>

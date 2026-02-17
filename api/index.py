@@ -212,31 +212,29 @@ def gerar_relatorio():
             return jsonify({
                 "producao_total": 0, "perdas_total": 0, "percentual_perdas": 0,
                 "dias_produzidos": 0, "media_diaria": 0, "data_inicio": data_inicio, "data_fim": data_fim,
-                "por_turno": {}
+                "por_referencia": {}
             })
         
         producao_total = 0
         perdas_total = 0
         dias_unicos = set()
-        stats_turno = {
-            "A": {"prod": 0, "perd": 0, "dias": set()},
-            "B": {"prod": 0, "perd": 0, "dias": set()},
-            "Administrativo": {"prod": 0, "perd": 0, "dias": set()}
-        }
+        stats_ref = {}
         
         for lanc in lancamentos:
             prod_lanc = float(lanc.get('producao_total') or 0)
             perd_lanc = float(lanc.get('perdas_total') or 0)
+            ref = lanc.get('referencia_producao') or 'Sem Referência'
             
             producao_total += prod_lanc
             perdas_total += perd_lanc
             dias_unicos.add(lanc['data'])
             
-            t = lanc['turno']
-            if t in stats_turno:
-                stats_turno[t]["prod"] += prod_lanc
-                stats_turno[t]["perd"] += perd_lanc
-                stats_turno[t]["dias"].add(lanc['data'])
+            if ref not in stats_ref:
+                stats_ref[ref] = {"prod": 0, "perd": 0, "dias": set()}
+            
+            stats_ref[ref]["prod"] += prod_lanc
+            stats_ref[ref]["perd"] += perd_lanc
+            stats_ref[ref]["dias"].add(lanc['data'])
         
         dias_total = len(dias_unicos)
         
@@ -248,14 +246,14 @@ def gerar_relatorio():
             "media_diaria": round(producao_total / dias_total if dias_total > 0 else 0, 2),
             "data_inicio": data_inicio,
             "data_fim": data_fim,
-            "por_turno": {
-                t: {
+            "por_referencia": {
+                ref: {
                     "producao": round(s["prod"], 2),
                     "perdas": round(s["perd"], 2),
                     "dias_produzidos": len(s["dias"]),
                     "media_diaria": round(s["prod"] / len(s["dias"]) if s["dias"] else 0, 2),
                     "percentual_perdas": round((s["perd"] / s["prod"] * 100) if s["prod"] > 0 else 0, 2)
-                } for t, s in stats_turno.items() if s["prod"] > 0 or s["perd"] > 0
+                } for ref, s in stats_ref.items()
             }
         }
         return jsonify(relatorio)
