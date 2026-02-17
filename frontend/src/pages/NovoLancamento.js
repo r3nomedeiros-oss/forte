@@ -16,7 +16,6 @@ function NovoLancamento() {
     orelha_kg: '',
     aparas_kg: '',
     referencia_producao: '',
-    referencia_lote: '',
     itens: [
       { formato: '', cor: '', pacote_kg: '', producao_kg: '' }
     ]
@@ -133,26 +132,19 @@ function NovoLancamento() {
             </div>
           </div>
 
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '20px'}}>
-            <div className="form-group">
-              <label>Referência de Produção</label>
+          <div style={{marginTop: '20px', padding: '15px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bcf0da'}}>
+            <div className="form-group" style={{marginBottom: '0'}}>
+              <label style={{fontWeight: '700', color: '#15803d', fontSize: '16px'}}>Referência de Produção</label>
               <input
                 type="text"
                 className="form-control"
                 value={lancamento.referencia_producao}
                 onChange={(e) => setLancamento({...lancamento, referencia_producao: e.target.value})}
                 placeholder="Ex: Produção para Cliente X"
+                style={{border: '2px solid #15803d', fontSize: '16px', fontWeight: '600'}}
+                required
               />
-            </div>
-            <div className="form-group">
-              <label>Referência do Lote</label>
-              <input
-                type="text"
-                className="form-control"
-                value={lancamento.referencia_lote}
-                onChange={(e) => setLancamento({...lancamento, referencia_lote: e.target.value})}
-                placeholder="Ex: LOTE-2026-001"
-              />
+              <p style={{fontSize: '12px', color: '#15803d', marginTop: '5px'}}>Destaque para que vai a produção</p>
             </div>
           </div>
         </div>

@@ -113,14 +113,18 @@ function DetalhesLancamento() {
 	          <p style={{fontSize: '12px', color: '#4a5568', margin: '0', fontWeight: '600'}}>{formatarData(lancamento.data)} • Turno {lancamento.turno}</p>
 	          <p style={{fontSize: '11px', color: '#718096', margin: '4px 0 0 0'}}>{lancamento.hora}</p>
             {lancamento.referencia_producao && (
-              <p style={{fontSize: '13px', color: '#1a202c', margin: '8px 0 0 0', fontWeight: '700'}}>
-                REF: {lancamento.referencia_producao}
-              </p>
-            )}
-            {lancamento.referencia_lote && (
-              <p style={{fontSize: '11px', color: '#4a5568', margin: '2px 0 0 0'}}>
-                LOTE: {lancamento.referencia_lote}
-              </p>
+              <div style={{
+                marginTop: '12px', 
+                padding: '8px', 
+                background: '#f0fdf4', 
+                borderRadius: '6px', 
+                border: '2px solid #15803d'
+              }}>
+                <p style={{fontSize: '11px', color: '#15803d', margin: '0', fontWeight: '700', textTransform: 'uppercase'}}>Referência de Produção</p>
+                <p style={{fontSize: '16px', color: '#1a202c', margin: '2px 0 0 0', fontWeight: '800'}}>
+                  {lancamento.referencia_producao}
+                </p>
+              </div>
             )}
 	        </div>
 

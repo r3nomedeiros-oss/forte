@@ -12,7 +12,7 @@ function Relatorios() {
   const [periodo, setPeriodo] = useState('mensal');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
-  const [referenciaLote, setReferenciaLote] = useState('');
+  const [referenciaProducao, setReferenciaProducao] = useState('');
   const [relatorio, setRelatorio] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,8 +37,8 @@ function Relatorios() {
         url += `&data_inicio=${dataInicio}&data_fim=${dataFim}`;
       }
 
-      if (referenciaLote) {
-        url += `&referencia_lote=${referenciaLote}`;
+      if (referenciaProducao) {
+        url += `&referencia_producao=${referenciaProducao}`;
       }
       
       const response = await axios.get(url);
@@ -56,7 +56,7 @@ function Relatorios() {
     
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const periodoTexto = periodo === 'customizado' ? `${dataInicio} a ${dataFim}` : periodo.charAt(0).toUpperCase() + periodo.slice(1);
-    const filtroLoteTexto = referenciaLote ? ` - Lote: ${referenciaLote}` : '';
+    const filtroRefTexto = referenciaProducao ? ` - Ref: ${referenciaProducao}` : '';
     
     const conteudo = `
 <!DOCTYPE html>
@@ -82,7 +82,7 @@ function Relatorios() {
 </head>
 <body>
   <div class="header">Gerado em: ${dataAtual}</div>
-  <h1>Relatório de Produção - ${periodoTexto}${filtroLoteTexto}</h1>
+  <h1>Relatório de Produção - ${periodoTexto}${filtroRefTexto}</h1>
   
   <h2>Informações Consolidadas</h2>
   <div class="stats">
@@ -142,7 +142,7 @@ function Relatorios() {
   const exportarExcel = () => {
     if (!relatorio) return;
     const dataAtual = new Date().toLocaleDateString('pt-BR');
-    let csv = `RELATÓRIO DE PRODUÇÃO;${periodo.toUpperCase()}${referenciaLote ? ' - LOTE: ' + referenciaLote : ''}\n`;
+    let csv = `RELATÓRIO DE PRODUÇÃO;${periodo.toUpperCase()}${referenciaProducao ? ' - REF: ' + referenciaProducao : ''}\n`;
     csv += `Gerado em:;${dataAtual}\n\n`;
     csv += `RESUMO GERAL\n`;
     csv += `Produção Total;${formatarKg(relatorio.producao_total)} kg\n`;
@@ -198,13 +198,14 @@ function Relatorios() {
             </>
           )}
           <div className="form-group">
-            <label>Referência do Lote</label>
+            <label style={{fontWeight: '700', color: '#15803d'}}>Referência de Produção</label>
             <input 
               type="text" 
               className="form-control" 
-              value={referenciaLote} 
-              onChange={(e) => setReferenciaLote(e.target.value)} 
-              placeholder="Filtrar por lote (opcional)"
+              value={referenciaProducao} 
+              onChange={(e) => setReferenciaProducao(e.target.value)} 
+              placeholder="Filtrar por referência (ex: Cliente X)"
+              style={{border: '1px solid #15803d'}}
             />
           </div>
         </div>

@@ -181,7 +181,7 @@ def gerar_relatorio():
         periodo = request.args.get('periodo', 'mensal')
         data_inicio = request.args.get('data_inicio')
         data_fim = request.args.get('data_fim')
-        referencia_lote = request.args.get('referencia_lote')
+        referencia_producao = request.args.get('referencia_producao')
         
         hoje = datetime.now().date()
         
@@ -204,8 +204,8 @@ def gerar_relatorio():
         query = supabase.table("lancamentos").select("*")
         if data_inicio and data_fim:
             query = query.gte("data", data_inicio).lte("data", data_fim)
-        if referencia_lote:
-            query = query.ilike("referencia_lote", f"%{referencia_lote}%")
+        if referencia_producao:
+            query = query.ilike("referencia_producao", f"%{referencia_producao}%")
         
         response = query.execute()
         lancamentos = response.data
