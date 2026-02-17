@@ -17,6 +17,8 @@ function EditarLancamento() {
     hora: '',
     orelha_kg: '',
     aparas_kg: '',
+    referencia_producao: '',
+    referencia_lote: '',
     itens: []
   });
 
@@ -151,6 +153,29 @@ function EditarLancamento() {
                 value={lancamento.aparas_kg}
                 onChange={(e) => setLancamento({...lancamento, aparas_kg: e.target.value})}
                 required
+              />
+            </div>
+          </div>
+
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '20px'}}>
+            <div className="form-group">
+              <label>Referência de Produção</label>
+              <input
+                type="text"
+                className="form-control"
+                value={lancamento.referencia_producao || ''}
+                onChange={(e) => setLancamento({...lancamento, referencia_producao: e.target.value})}
+                placeholder="Ex: Produção para Cliente X"
+              />
+            </div>
+            <div className="form-group">
+              <label>Referência do Lote</label>
+              <input
+                type="text"
+                className="form-control"
+                value={lancamento.referencia_lote || ''}
+                onChange={(e) => setLancamento({...lancamento, referencia_lote: e.target.value})}
+                placeholder="Ex: LOTE-2026-001"
               />
             </div>
           </div>

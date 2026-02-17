@@ -110,9 +110,19 @@ function DetalhesLancamento() {
       <div ref={detalhesRef} style={{background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '20px', maxWidth: '500px'}}>
         <div style={{textAlign: 'center', marginBottom: '16px', borderBottom: '2px solid #15803d', paddingBottom: '12px'}}>
           <h2 style={{fontSize: '16px', fontWeight: '800', color: '#1a202c', margin: '0 0 4px 0'}}>RELATÓRIO DE PRODUÇÃO</h2>
-          <p style={{fontSize: '12px', color: '#4a5568', margin: '0', fontWeight: '600'}}>{formatarData(lancamento.data)} • Turno {lancamento.turno}</p>
-          <p style={{fontSize: '11px', color: '#718096', margin: '4px 0 0 0'}}>{lancamento.hora}</p>
-        </div>
+	          <p style={{fontSize: '12px', color: '#4a5568', margin: '0', fontWeight: '600'}}>{formatarData(lancamento.data)} • Turno {lancamento.turno}</p>
+	          <p style={{fontSize: '11px', color: '#718096', margin: '4px 0 0 0'}}>{lancamento.hora}</p>
+            {lancamento.referencia_producao && (
+              <p style={{fontSize: '13px', color: '#1a202c', margin: '8px 0 0 0', fontWeight: '700'}}>
+                REF: {lancamento.referencia_producao}
+              </p>
+            )}
+            {lancamento.referencia_lote && (
+              <p style={{fontSize: '11px', color: '#4a5568', margin: '2px 0 0 0'}}>
+                LOTE: {lancamento.referencia_lote}
+              </p>
+            )}
+	        </div>
 
         <div style={{marginBottom: '14px'}}>
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px'}}>

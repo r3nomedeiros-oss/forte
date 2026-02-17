@@ -15,6 +15,8 @@ function NovoLancamento() {
     hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     orelha_kg: '',
     aparas_kg: '',
+    referencia_producao: '',
+    referencia_lote: '',
     itens: [
       { formato: '', cor: '', pacote_kg: '', producao_kg: '' }
     ]
@@ -127,6 +129,29 @@ function NovoLancamento() {
                 onChange={(e) => setLancamento({...lancamento, aparas_kg: e.target.value})}
                 required
                 placeholder="0,00"
+              />
+            </div>
+          </div>
+
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '20px'}}>
+            <div className="form-group">
+              <label>Referência de Produção</label>
+              <input
+                type="text"
+                className="form-control"
+                value={lancamento.referencia_producao}
+                onChange={(e) => setLancamento({...lancamento, referencia_producao: e.target.value})}
+                placeholder="Ex: Produção para Cliente X"
+              />
+            </div>
+            <div className="form-group">
+              <label>Referência do Lote</label>
+              <input
+                type="text"
+                className="form-control"
+                value={lancamento.referencia_lote}
+                onChange={(e) => setLancamento({...lancamento, referencia_lote: e.target.value})}
+                placeholder="Ex: LOTE-2026-001"
               />
             </div>
           </div>

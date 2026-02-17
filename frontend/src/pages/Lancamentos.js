@@ -76,19 +76,21 @@ function Lancamentos() {
   <table>
     <thead>
       <tr>
-        <th>Data/Hora</th>
-        <th>Turno</th>
-        <th>Produção (kg)</th>
+	        <th>Data/Hora</th>
+	        <th>Referência</th>
+	        <th>Turno</th>
+	        <th>Produção (kg)</th>
         <th>Perdas (kg)</th>
         <th>% Perdas</th>
       </tr>
     </thead>
     <tbody>
-      ${lancamentos.map(lanc => `
-        <tr>
-          <td>${formatarData(lanc.data)} ${formatarHora(lanc.hora)}</td>
-          <td>${lanc.turno}</td>
-          <td>${formatarKg(lanc.producao_total)}</td>
+	      ${lancamentos.map(lanc => `
+	        <tr>
+	          <td>${formatarData(lanc.data)} ${formatarHora(lanc.hora)}</td>
+	          <td>${lanc.referencia_producao || ''} ${lanc.referencia_lote ? '(' + lanc.referencia_lote + ')' : ''}</td>
+	          <td>${lanc.turno}</td>
+	          <td>${formatarKg(lanc.producao_total)}</td>
           <td>${formatarKg(lanc.perdas_total)}</td>
           <td>${lanc.percentual_perdas}%</td>
         </tr>
@@ -111,9 +113,9 @@ function Lancamentos() {
   };
 
   const exportarHistoricoExcel = () => {
-    let csv = `Data;Hora;Turno;Produção (kg);Perdas (kg);% Perdas\n`;
+    let csv = `Data;Hora;Referência;Lote;Turno;Produção (kg);Perdas (kg);% Perdas\n`;
     lancamentos.forEach(lanc => {
-      csv += `${formatarData(lanc.data)};${formatarHora(lanc.hora)};${lanc.turno};${formatarKg(lanc.producao_total)};${formatarKg(lanc.perdas_total)};${lanc.percentual_perdas}%\n`;
+      csv += `${formatarData(lanc.data)};${formatarHora(lanc.hora)};${lanc.referencia_producao || ''};${lanc.referencia_lote || ''};${lanc.turno};${formatarKg(lanc.producao_total)};${formatarKg(lanc.perdas_total)};${lanc.percentual_perdas}%\n`;
     });
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
@@ -161,6 +163,7 @@ function Lancamentos() {
               <thead>
                 <tr>
                   <th>Lançamento</th>
+                  <th>Referência</th>
                   <th>Turno</th>
                   <th>Produção</th>
                   <th>Perdas</th>
@@ -175,6 +178,16 @@ function Lancamentos() {
                       <div style={{fontWeight: '600'}}>
                         {formatarData(lanc.data)} - {formatarHora(lanc.hora)}
                       </div>
+                    </td>
+                    <td>
+                      <div style={{fontWeight: '600', color: '#2d3748'}}>
+                        {lanc.referencia_producao || <span style={{color: '#a0aec0', fontStyle: 'italic', fontSize: '12px'}}>Sem ref.</span>}
+                      </div>
+                      {lanc.referencia_lote && (
+                        <div style={{fontSize: '11px', color: '#718096'}}>
+                          Lote: {lanc.referencia_lote}
+                        </div>
+                      )}
                     </td>
                     <td>
                       <span className="badge badge-success">{lanc.turno}</span>

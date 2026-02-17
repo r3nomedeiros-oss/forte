@@ -34,7 +34,9 @@ def criar_lancamento():
             "turno": data['turno'],
             "hora": data['hora'],
             "orelha_kg": float(data['orelha_kg'] or 0),
-            "aparas_kg": float(data['aparas_kg'] or 0)
+            "aparas_kg": float(data['aparas_kg'] or 0),
+            "referencia_producao": data.get('referencia_producao', ''),
+            "referencia_lote": data.get('referencia_lote', '')
         }
         
         supabase.table("lancamentos").insert(lancamento).execute()
@@ -130,7 +132,9 @@ def atualizar_lancamento(lancamento_id):
             "turno": data['turno'],
             "hora": data['hora'],
             "orelha_kg": float(data['orelha_kg'] or 0),
-            "aparas_kg": float(data['aparas_kg'] or 0)
+            "aparas_kg": float(data['aparas_kg'] or 0),
+            "referencia_producao": data.get('referencia_producao', ''),
+            "referencia_lote": data.get('referencia_lote', '')
         }
         
         # Atualizar dados básicos
@@ -177,6 +181,7 @@ def gerar_relatorio():
         periodo = request.args.get('periodo', 'mensal')
         data_inicio = request.args.get('data_inicio')
         data_fim = request.args.get('data_fim')
+        referencia_lote = request.args.get('referencia_lote')
         
         hoje = datetime.now().date()
         
@@ -199,6 +204,8 @@ def gerar_relatorio():
         query = supabase.table("lancamentos").select("*")
         if data_inicio and data_fim:
             query = query.gte("data", data_inicio).lte("data", data_fim)
+        if referencia_lote:
+            query = query.ilike("referencia_lote", f"%{referencia_lote}%")
         
         response = query.execute()
         lancamentos = response.data
