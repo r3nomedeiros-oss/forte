@@ -151,41 +151,7 @@ function Dashboard() {
         )}
       </div>
 
-      <div className="card">
-        <h2 style={{marginBottom: '20px'}}>Produção por Turno</h2>
-        
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px'}}>
-          <div style={{padding: '20px', background: '#f7fafc', borderRadius: '8px'}}>
-            <h3 style={{color: '#667eea', marginBottom: '10px'}}>Turno A</h3>
-            <div style={{fontSize: '24px', fontWeight: '700', marginBottom: '5px'}}>
-              {formatarKg(stats?.por_turno?.A?.producao || 0)} kg
-            </div>
-            <div style={{fontSize: '14px', color: '#718096'}}>
-              Perdas: {formatarKg(stats?.por_turno?.A?.perdas || 0)} kg
-            </div>
-          </div>
 
-          <div style={{padding: '20px', background: '#f7fafc', borderRadius: '8px'}}>
-            <h3 style={{color: '#667eea', marginBottom: '10px'}}>Turno B</h3>
-            <div style={{fontSize: '24px', fontWeight: '700', marginBottom: '5px'}}>
-              {formatarKg(stats?.por_turno?.B?.producao || 0)} kg
-            </div>
-            <div style={{fontSize: '14px', color: '#718096'}}>
-              Perdas: {formatarKg(stats?.por_turno?.B?.perdas || 0)} kg
-            </div>
-          </div>
-
-          <div style={{padding: '20px', background: '#f7fafc', borderRadius: '8px'}}>
-            <h3 style={{color: '#667eea', marginBottom: '10px'}}>Administrativo</h3>
-            <div style={{fontSize: '24px', fontWeight: '700', marginBottom: '5px'}}>
-              {formatarKg(stats?.por_turno?.Administrativo?.producao || 0)} kg
-            </div>
-            <div style={{fontSize: '14px', color: '#718096'}}>
-              Perdas: {formatarKg(stats?.por_turno?.Administrativo?.perdas || 0)} kg
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
