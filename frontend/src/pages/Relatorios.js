@@ -94,6 +94,28 @@ function Relatorios() {
     <div class="stat-box"><strong>Média Diária</strong><div class="value">${formatarKg(relatorio.media_diaria)} kg</div></div>
     <div class="stat-box"><strong>Dias Produzidos</strong><div class="value">${relatorio.dias_produzidos}</div></div>
   </div>
+
+  <h2>Produção por Itens (Formato e Cor)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Formato</th>
+        <th>Cor</th>
+        <th>Total Produzido (kg)</th>
+        <th>% da Produção</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${relatorio.por_item.map(item => `
+        <tr>
+          <td><strong>${item.formato}</strong></td>
+          <td>${item.cor}</td>
+          <td>${formatarKg(item.producao)} kg</td>
+          <td>${(item.producao / relatorio.producao_total * 100).toFixed(1)}%</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
   
   <h2>Detalhamento por Referência de Produção</h2>
   <table>
@@ -153,7 +175,12 @@ function Relatorios() {
     csv += `Percentual de Perdas;${relatorio.percentual_perdas}%\n`;
     csv += `Média Diária;${formatarKg(relatorio.media_diaria)} kg\n`;
     csv += `Dias Produzidos;${relatorio.dias_produzidos}\n\n`;
-    csv += `DETALHES POR REFERÊNCIA\n`;
+    csv += `PRODUÇÃO POR ITENS\n`;
+    csv += `Formato;Cor;Total Produzido (kg);% da Produção\n`;
+    relatorio.por_item.forEach(item => {
+      csv += `${item.formato};${item.cor};${formatarKg(item.producao)};${(item.producao / relatorio.producao_total * 100).toFixed(1)}%\n`;
+    });
+    csv += `\nDETALHES POR REFERÊNCIA\n`;
     csv += `Referência;Produção (kg);Perdas (kg);% Perdas;Média Diária;Dias Produzidos\n`;
     Object.entries(relatorio.por_referencia).forEach(([ref, dados]) => {
       csv += `${ref};${formatarKg(dados.producao)};${formatarKg(dados.perdas)};${dados.percentual_perdas}%;${formatarKg(dados.media_diaria)};${dados.dias_produzidos}\n`;
@@ -236,6 +263,63 @@ function Relatorios() {
               <div className="stat-card"><h3>Perdas Totais</h3><div className="value">{formatarKg(relatorio.perdas_total)} kg</div></div>
               <div className="stat-card"><h3>Percentual de Perdas</h3><div className="value">{relatorio.percentual_perdas}%</div></div>
               <div className="stat-card"><h3>Média Diária</h3><div className="value">{formatarKg(relatorio.media_diaria)} kg</div></div>
+            </div>
+          </div>
+
+          <div className="card" style={{marginBottom: '30px', borderLeft: '5px solid #15803d'}}>
+            <h2 style={{marginBottom: '20px', color: '#15803d'}}>Produção por Itens (Formato e Cor)</h2>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Formato</th>
+                    <th>Cor</th>
+                    <th>Total Produzido (kg)</th>
+                    <th>% da Produção Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {relatorio.por_item && relatorio.por_item.length > 0 ? (
+                    relatorio.por_item.map((item, index) => (
+                      <tr key={index}>
+                        <td style={{fontWeight: '700'}}>{item.formato}</td>
+                        <td>
+                          <span style={{
+                            padding: '2px 8px', 
+                            borderRadius: '12px', 
+                            background: '#edf2f7', 
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            {item.cor}
+                          </span>
+                        </td>
+                        <td style={{fontWeight: '800', color: '#2d3748'}}>{formatarKg(item.producao)} kg</td>
+                        <td>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                            <div style={{flex: 1, height: '8px', background: '#edf2f7', borderRadius: '4px', overflow: 'hidden'}}>
+                              <div style={{
+                                width: `${(item.producao / relatorio.producao_total * 100).toFixed(1)}%`,
+                                height: '100%',
+                                background: '#15803d'
+                              }}></div>
+                            </div>
+                            <span style={{fontSize: '12px', fontWeight: '600'}}>
+                              {(item.producao / relatorio.producao_total * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" style={{textAlign: 'center', padding: '20px', color: '#718096'}}>
+                        Nenhum item produzido no período selecionado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 

@@ -223,6 +223,7 @@ def gerar_relatorio():
         perdas_total = 0
         dias_unicos = set()
         stats_ref = {}
+        stats_itens = {}
         
         for lanc in lancamentos:
             prod_lanc = float(lanc.get('producao_total') or 0)
@@ -233,12 +234,25 @@ def gerar_relatorio():
             perdas_total += perd_lanc
             dias_unicos.add(lanc['data'])
             
+            # Estatísticas por Referência
             if ref not in stats_ref:
                 stats_ref[ref] = {"prod": 0, "perd": 0, "dias": set()}
-            
             stats_ref[ref]["prod"] += prod_lanc
             stats_ref[ref]["perd"] += perd_lanc
             stats_ref[ref]["dias"].add(lanc['data'])
+
+            # Estatísticas por Item (Formato + Cor)
+            itens_lanc = lanc.get('itens', [])
+            if isinstance(itens_lanc, list):
+                for item in itens_lanc:
+                    formato = item.get('formato', 'N/A')
+                    cor = item.get('cor', 'N/A')
+                    chave_item = f"{formato} - {cor}"
+                    prod_item = float(item.get('producao_kg') or 0)
+                    
+                    if chave_item not in stats_itens:
+                        stats_itens[chave_item] = {"formato": formato, "cor": cor, "producao": 0}
+                    stats_itens[chave_item]["producao"] += prod_item
         
         dias_total = len(dias_unicos)
         
@@ -258,7 +272,15 @@ def gerar_relatorio():
                     "media_diaria": round(s["prod"] / len(s["dias"]) if s["dias"] else 0, 2),
                     "percentual_perdas": round((s["perd"] / s["prod"] * 100) if s["prod"] > 0 else 0, 2)
                 } for ref, s in stats_ref.items()
-            }
+            },
+            "por_item": [
+                {
+                    "item": chave,
+                    "formato": dados["formato"],
+                    "cor": dados["cor"],
+                    "producao": round(dados["producao"], 2)
+                } for chave, dados in sorted(stats_itens.items(), key=lambda x: x[1]['producao'], reverse=True)
+            ]
         }
         res = jsonify(relatorio)
         res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
