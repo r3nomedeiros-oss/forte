@@ -2,9 +2,6 @@
   "github": {
     "silent": true
   },
-  "buildCommand": "cd frontend && yarn install && yarn build",
-  "outputDirectory": "frontend/build",
-  "installCommand": "cd frontend && yarn install",
   "rewrites": [
     {
       "source": "/api/:path*",

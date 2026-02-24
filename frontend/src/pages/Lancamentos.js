@@ -17,6 +17,7 @@ function Lancamentos() {
 
   useEffect(() => {
     carregarLancamentos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const carregarLancamentos = async () => {
