@@ -12,6 +12,8 @@ const formatarKg = (valor) => {
 function Lancamentos() {
   const [lancamentos, setLancamentos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtroDataInicio, setFiltroDataInicio] = useState('');
+  const [filtroDataFim, setFiltroDataFim] = useState('');
 
   useEffect(() => {
     carregarLancamentos();
@@ -20,7 +22,12 @@ function Lancamentos() {
   const carregarLancamentos = async () => {
     try {
       // Adiciona timestamp para evitar cache do navegador
-      const response = await axios.get(`${API_URL}/lancamentos?t=${new Date().getTime()}`);
+      let url = `${API_URL}/lancamentos?t=${new Date().getTime()}`;
+      
+      if (filtroDataInicio) url += `&data_inicio=${filtroDataInicio}`;
+      if (filtroDataFim) url += `&data_fim=${filtroDataFim}`;
+
+      const response = await axios.get(url);
       setLancamentos(response.data);
     } catch (error) {
       console.error('Erro ao carregar lançamentos:', error);
@@ -56,12 +63,16 @@ function Lancamentos() {
 
   const exportarHistoricoPDF = () => {
     const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const periodoTexto = filtroDataInicio && filtroDataFim 
+      ? `Período: ${formatarData(filtroDataInicio)} até ${formatarData(filtroDataFim)}`
+      : 'Histórico Completo';
+      
     const conteudo = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Histórico de Produção</title>
+  <title>Histórico de Produção - ${periodoTexto}</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; color: #2d3748; }
     h1 { color: #15803d; border-bottom: 2px solid #15803d; padding-bottom: 10px; }
@@ -73,6 +84,7 @@ function Lancamentos() {
 </head>
 <body>
   <h1>Histórico de Produção - PolyTrack</h1>
+  <p><strong>${periodoTexto}</strong></p>
   <p>Gerado em: ${dataAtual}</p>
   <table>
     <thead>
@@ -146,6 +158,52 @@ function Lancamentos() {
           <button onClick={exportarHistoricoExcel} className="btn btn-success" style={{padding: '8px 15px', fontSize: '13px'}}>
             <FileSpreadsheet size={14} /> Excel
           </button>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom: '20px', padding: '15px'}}>
+        <div style={{display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap'}}>
+          <div className="form-group" style={{marginBottom: 0, flex: 1, minWidth: '200px'}}>
+            <label style={{fontSize: '13px', fontWeight: '600', marginBottom: '5px', display: 'block'}}>Data Início</label>
+            <input 
+              type="date" 
+              className="form-control" 
+              value={filtroDataInicio} 
+              onChange={(e) => setFiltroDataInicio(e.target.value)} 
+            />
+          </div>
+          <div className="form-group" style={{marginBottom: 0, flex: 1, minWidth: '200px'}}>
+            <label style={{fontSize: '13px', fontWeight: '600', marginBottom: '5px', display: 'block'}}>Data Fim</label>
+            <input 
+              type="date" 
+              className="form-control" 
+              value={filtroDataFim} 
+              onChange={(e) => setFiltroDataFim(e.target.value)} 
+            />
+          </div>
+          <div style={{display: 'flex', gap: '10px'}}>
+            <button 
+              onClick={carregarLancamentos} 
+              className="btn btn-primary" 
+              style={{padding: '10px 20px'}}
+            >
+              Filtrar
+            </button>
+            {(filtroDataInicio || filtroDataFim) && (
+              <button 
+                onClick={() => {
+                  setFiltroDataInicio('');
+                  setFiltroDataFim('');
+                  // Usar setTimeout para garantir que os estados foram limpos antes de carregar
+                  setTimeout(carregarLancamentos, 0);
+                }} 
+                className="btn btn-secondary" 
+                style={{padding: '10px 20px'}}
+              >
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

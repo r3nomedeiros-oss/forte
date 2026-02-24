@@ -86,7 +86,17 @@ def criar_lancamento():
 @app.route('/api/lancamentos', methods=['GET'])
 def listar_lancamentos():
     try:
-        response = supabase.table("lancamentos").select("*").order("data", desc=True).order("hora", desc=True).execute()
+        data_inicio = request.args.get('data_inicio')
+        data_fim = request.args.get('data_fim')
+        
+        query = supabase.table("lancamentos").select("*")
+        
+        if data_inicio:
+            query = query.gte("data", data_inicio)
+        if data_fim:
+            query = query.lte("data", data_fim)
+            
+        response = query.order("data", desc=True).order("hora", desc=True).execute()
         lancamentos = response.data
         
         if not lancamentos:
