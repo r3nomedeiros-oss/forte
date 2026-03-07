@@ -156,19 +156,35 @@ function DetalhesLancamento() {
           <h3 style={{fontSize: '14px', fontWeight: '800', color: '#1a202c', margin: '0 0 12px 0', textTransform: 'uppercase'}}>Itens Produzidos</h3>
           
           {lancamento.itens && lancamento.itens.length > 0 ? (
-            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-              {lancamento.itens.map((item, index) => (
-                <div key={index} style={{background: '#f8fafc', padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '15px'}}>
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px'}}>
-                    <div><span style={{fontWeight: '700', color: '#1a202c', fontSize: '14px'}}>Formato:</span> <span style={{color: '#4a5568', fontSize: '16px', fontWeight: '600'}}>{item.formato}</span></div>
-                    <div><span style={{fontWeight: '700', color: '#1a202c', fontSize: '14px'}}>Cor:</span> <span style={{color: '#4a5568', fontSize: '16px', fontWeight: '600'}}>{item.cor}</span></div>
-                  </div>
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
-                    <div><span style={{fontWeight: '700', color: '#1a202c', fontSize: '14px'}}>Pacote:</span> <span style={{color: '#4a5568', fontSize: '16px', fontWeight: '600'}}>{parseFloat(item.pacote_kg).toFixed(2)} kg</span></div>
-                    <div><span style={{fontWeight: '700', color: '#48bb78', fontSize: '14px'}}>Produção:</span> <span style={{color: '#48bb78', fontWeight: '700', fontSize: '16px'}}>{parseFloat(item.producao_kg).toFixed(2)} kg</span></div>
-                  </div>
-                </div>
-              ))}
+            <div style={{overflowX: 'auto'}}>
+              <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '13px'}}>
+                <thead>
+                  <tr style={{background: '#f0fdf4'}}>
+                    <th style={{padding: '10px 8px', textAlign: 'left', fontWeight: '700', color: '#15803d', borderBottom: '2px solid #15803d'}}>Formato</th>
+                    <th style={{padding: '10px 8px', textAlign: 'left', fontWeight: '700', color: '#15803d', borderBottom: '2px solid #15803d'}}>Cor</th>
+                    <th style={{padding: '10px 8px', textAlign: 'right', fontWeight: '700', color: '#15803d', borderBottom: '2px solid #15803d'}}>Pacote</th>
+                    <th style={{padding: '10px 8px', textAlign: 'right', fontWeight: '700', color: '#15803d', borderBottom: '2px solid #15803d'}}>Produção</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lancamento.itens.map((item, index) => (
+                    <tr key={index} style={{borderBottom: '1px solid #e2e8f0'}}>
+                      <td style={{padding: '10px 8px', fontWeight: '600'}}>{item.formato}</td>
+                      <td style={{padding: '10px 8px', fontWeight: '600'}}>{item.cor}</td>
+                      <td style={{padding: '10px 8px', textAlign: 'right'}}>{parseFloat(item.pacote_kg).toFixed(2)} kg</td>
+                      <td style={{padding: '10px 8px', textAlign: 'right', fontWeight: '700', color: '#15803d'}}>{parseFloat(item.producao_kg).toFixed(2)} kg</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{background: '#f0fdf4'}}>
+                    <td colSpan="3" style={{padding: '10px 8px', fontWeight: '800', textAlign: 'right', borderTop: '2px solid #15803d'}}>TOTAL:</td>
+                    <td style={{padding: '10px 8px', textAlign: 'right', fontWeight: '800', color: '#15803d', borderTop: '2px solid #15803d'}}>
+                      {formatarKg(lancamento.itens.reduce((sum, item) => sum + parseFloat(item.producao_kg), 0))} kg
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           ) : (
             <p style={{fontSize: '12px', color: '#4a5568', margin: '0'}}>Nenhum item registrado</p>
