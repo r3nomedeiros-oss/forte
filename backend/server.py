@@ -56,6 +56,17 @@ class User(BaseModel):
     email: str
     tipo: str
 
+# Variables Models
+class VariableCreate(BaseModel):
+    tipo: str  # 'turno', 'formato', 'cor'
+    nome: str
+
+class Variable(BaseModel):
+    id: str
+    tipo: str
+    nome: str
+    created_at: str
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
@@ -155,6 +166,54 @@ async def login_user(login_data: UserLogin):
         raise
     except Exception as e:
         logger.error(f"Error logging in user: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ==================== VARIABLES ENDPOINTS ====================
+
+@api_router.get("/variaveis", response_model=List[Variable])
+async def listar_variaveis():
+    """List all variables (turnos, formatos, cores)"""
+    try:
+        response = supabase.table("variaveis").select("*").order("tipo").order("nome").execute()
+        return response.data
+    except Exception as e:
+        logger.error(f"Error fetching variables: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/variaveis", response_model=Variable, status_code=201)
+async def criar_variavel(variable_data: VariableCreate):
+    """Create a new variable"""
+    try:
+        # Check if variable already exists
+        existing = supabase.table("variaveis").select("*").eq("tipo", variable_data.tipo).eq("nome", variable_data.nome).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="Variável já existe")
+        
+        # Create new variable
+        variavel = {
+            "id": str(uuid.uuid4()),
+            "tipo": variable_data.tipo,
+            "nome": variable_data.nome,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Insert into Supabase
+        result = supabase.table("variaveis").insert(variavel).execute()
+        return variavel
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating variable: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/variaveis/{variavel_id}")
+async def deletar_variavel(variavel_id: str):
+    """Delete a variable by ID"""
+    try:
+        result = supabase.table("variaveis").delete().eq("id", variavel_id).execute()
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Error deleting variable: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Include the router in the main app
