@@ -54,13 +54,17 @@ function DetalhesLancamento() {
     if (!detalhesRef.current) return;
 
     try {
-      // Capturar a imagem do elemento com dimensões otimizadas para mobile
+      // Capturar a imagem do elemento - deixar html2canvas calcular as dimensões automaticamente
       const canvas = await html2canvas(detalhesRef.current, {
         backgroundColor: '#ffffff',
-        scale: 1.5,
+        scale: 2,
         logging: false,
-        width: 400,
-        windowHeight: 600
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: detalhesRef.current.scrollWidth,
+        windowHeight: detalhesRef.current.scrollHeight
       });
 
       // Converter para blob

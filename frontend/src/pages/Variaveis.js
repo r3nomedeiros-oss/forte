@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Settings, RefreshCw, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Settings, RefreshCw, GripVertical } from 'lucide-react';
 
 const API_URL = (process.env.REACT_APP_BACKEND_URL || '') + '/api';
 
@@ -9,6 +9,8 @@ function Variaveis() {
   const [loading, setLoading] = useState(true);
   const [novaVariavel, setNovaVariavel] = useState({ tipo: 'turno', nome: '' });
   const [salvando, setSalvando] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverItem, setDragOverItem] = useState(null);
 
   useEffect(() => {
     carregarVariaveis();
@@ -62,19 +64,45 @@ function Variaveis() {
     }
   };
 
-  // Função para mover item para cima ou para baixo
-  const moverVariavel = async (tipo, index, direcao) => {
-    const listaAtual = variaveis.filter(v => v.tipo === tipo);
-    const novoIndex = index + direcao;
+  // Funções de Drag and Drop
+  const handleDragStart = (e, item, tipo) => {
+    setDraggedItem({ ...item, tipo });
+    e.dataTransfer.effectAllowed = 'move';
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1';
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+
+  const handleDragOver = (e, item, tipo) => {
+    e.preventDefault();
+    if (draggedItem && draggedItem.tipo === tipo && draggedItem.id !== item.id) {
+      setDragOverItem(item.id);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverItem(null);
+  };
+
+  const handleDrop = async (e, targetItem, tipo) => {
+    e.preventDefault();
     
-    // Verificar limites
-    if (novoIndex < 0 || novoIndex >= listaAtual.length) return;
+    if (!draggedItem || draggedItem.tipo !== tipo) return;
     
-    // Trocar posições
-    const novaLista = [...listaAtual];
-    const temp = novaLista[index];
-    novaLista[index] = novaLista[novoIndex];
-    novaLista[novoIndex] = temp;
+    const lista = ordenarPorOrdem(variaveis.filter(v => v.tipo === tipo));
+    const dragIndex = lista.findIndex(item => item.id === draggedItem.id);
+    const dropIndex = lista.findIndex(item => item.id === targetItem.id);
+    
+    if (dragIndex === dropIndex) return;
+    
+    // Reordenar lista
+    const novaLista = [...lista];
+    const [removed] = novaLista.splice(dragIndex, 1);
+    novaLista.splice(dropIndex, 0, removed);
     
     // Atualizar ordem no backend
     try {
@@ -87,14 +115,10 @@ function Variaveis() {
       carregarVariaveis();
     } catch (error) {
       console.error('Erro ao reordenar variáveis:', error);
-      // Atualizar localmente mesmo se falhar no backend
-      const novasVariaveis = variaveis.map(v => {
-        if (v.tipo !== tipo) return v;
-        const idx = novaLista.findIndex(n => n.id === v.id);
-        return { ...v, ordem: idx };
-      });
-      setVariaveis(novasVariaveis);
     }
+    
+    setDraggedItem(null);
+    setDragOverItem(null);
   };
 
   // Ordenar por campo 'ordem' se existir
@@ -106,7 +130,7 @@ function Variaveis() {
   const formatos = ordenarPorOrdem(variaveis.filter(v => v.tipo === 'formato'));
   const cores = ordenarPorOrdem(variaveis.filter(v => v.tipo === 'cor'));
 
-  // Componente para renderizar lista de variáveis com botões de mover
+  // Componente para renderizar lista de variáveis com drag and drop
   const ListaVariaveis = ({ lista, tipo, icone, corFundo }) => (
     <div className="card">
       <h2 style={{marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px'}}>
@@ -120,46 +144,36 @@ function Variaveis() {
         <p style={{color: '#64748b', fontSize: '14px'}}>Nenhum {tipo} cadastrado</p>
       ) : (
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-          {lista.map((v, index) => (
-            <div key={v.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-              {/* Botões de mover */}
-              <div style={{display: 'flex', gap: '4px', marginRight: '10px'}}>
-                <button
-                  onClick={() => moverVariavel(tipo, index, -1)}
-                  disabled={index === 0}
-                  style={{
-                    padding: '4px',
-                    border: 'none',
-                    background: index === 0 ? '#e2e8f0' : '#15803d',
-                    color: index === 0 ? '#94a3b8' : 'white',
-                    borderRadius: '4px',
-                    cursor: index === 0 ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  title="Mover para cima"
-                >
-                  <ChevronUp size={16} />
-                </button>
-                <button
-                  onClick={() => moverVariavel(tipo, index, 1)}
-                  disabled={index === lista.length - 1}
-                  style={{
-                    padding: '4px',
-                    border: 'none',
-                    background: index === lista.length - 1 ? '#e2e8f0' : '#15803d',
-                    color: index === lista.length - 1 ? '#94a3b8' : 'white',
-                    borderRadius: '4px',
-                    cursor: index === lista.length - 1 ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  title="Mover para baixo"
-                >
-                  <ChevronDown size={16} />
-                </button>
+          {lista.map((v) => (
+            <div 
+              key={v.id} 
+              draggable
+              onDragStart={(e) => handleDragStart(e, v, tipo)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, v, tipo)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, v, tipo)}
+              style={{
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                padding: '10px 12px', 
+                background: dragOverItem === v.id ? '#dcfce7' : '#f8fafc', 
+                borderRadius: '8px', 
+                border: dragOverItem === v.id ? '2px dashed #15803d' : '1px solid #e2e8f0',
+                cursor: 'grab',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {/* Ícone de arrastar */}
+              <div style={{
+                display: 'flex', 
+                alignItems: 'center', 
+                color: '#94a3b8',
+                marginRight: '10px',
+                cursor: 'grab'
+              }}>
+                <GripVertical size={18} />
               </div>
               
               {/* Nome da variável */}
@@ -167,7 +181,10 @@ function Variaveis() {
               
               {/* Botão de excluir */}
               <button
-                onClick={() => deletarVariavel(v.id, v.nome)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deletarVariavel(v.id, v.nome);
+                }}
                 className="btn btn-danger"
                 style={{padding: '6px 10px', fontSize: '12px'}}
               >
@@ -177,6 +194,9 @@ function Variaveis() {
           ))}
         </div>
       )}
+      <p style={{fontSize: '11px', color: '#94a3b8', marginTop: '10px', textAlign: 'center'}}>
+        Arraste para reordenar
+      </p>
     </div>
   );
 
