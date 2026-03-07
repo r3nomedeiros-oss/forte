@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, Eye } from 'lucide-react';
 
 const API_URL = (process.env.REACT_APP_BACKEND_URL || '') + '/api';
+
+// Função para formatar data
+const formatarData = (data) => {
+  if (!data) return '-';
+  const [ano, mes, dia] = data.split('-');
+  return `${dia}/${mes}/${ano}`;
+};
+
+// Função para formatar número
+const formatarKg = (valor) => {
+  if (!valor && valor !== 0) return '0';
+  return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(valor) || 0);
+};
 
 function NovoLancamento() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [variaveis, setVariaveis] = useState({ turnos: [], formatos: [], cores: [] });
+  const [mostrarPreview, setMostrarPreview] = useState(false);
   
   const [lancamento, setLancamento] = useState({
     data: new Date().toISOString().split('T')[0],
@@ -249,6 +263,111 @@ function NovoLancamento() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Pré-visualização do Lançamento */}
+        <div className="card" style={{background: '#f0fdf4', border: '2px solid #15803d'}}>
+          <div 
+            style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'}}
+            onClick={() => setMostrarPreview(!mostrarPreview)}
+          >
+            <h2 style={{color: '#15803d', display: 'flex', alignItems: 'center', gap: '10px'}}>
+              <Eye size={20} />
+              Pré-visualização do Lançamento
+            </h2>
+            <span style={{color: '#15803d', fontSize: '14px'}}>
+              {mostrarPreview ? '▲ Ocultar' : '▼ Mostrar'}
+            </span>
+          </div>
+          
+          {mostrarPreview && (
+            <div style={{marginTop: '20px'}}>
+              {/* Informações Gerais */}
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '20px', padding: '15px', background: 'white', borderRadius: '8px'}}>
+                <div>
+                  <span style={{fontSize: '12px', color: '#64748b', display: 'block'}}>Data</span>
+                  <strong style={{fontSize: '16px'}}>{formatarData(lancamento.data)}</strong>
+                </div>
+                <div>
+                  <span style={{fontSize: '12px', color: '#64748b', display: 'block'}}>Hora</span>
+                  <strong style={{fontSize: '16px'}}>{lancamento.hora || '-'}</strong>
+                </div>
+                <div>
+                  <span style={{fontSize: '12px', color: '#64748b', display: 'block'}}>Turno</span>
+                  <strong style={{fontSize: '16px'}}>{lancamento.turno || '-'}</strong>
+                </div>
+                <div>
+                  <span style={{fontSize: '12px', color: '#64748b', display: 'block'}}>Referência</span>
+                  <strong style={{fontSize: '16px', color: '#15803d'}}>{lancamento.referencia_producao || '-'}</strong>
+                </div>
+              </div>
+
+              {/* Itens de Produção */}
+              <div style={{background: 'white', borderRadius: '8px', padding: '15px', marginBottom: '15px'}}>
+                <h3 style={{fontSize: '14px', marginBottom: '10px', color: '#4a5568'}}>Itens de Produção</h3>
+                <div style={{overflowX: 'auto'}}>
+                  <table style={{width: '100%', fontSize: '13px'}}>
+                    <thead>
+                      <tr style={{background: '#f8fafc'}}>
+                        <th style={{padding: '8px', textAlign: 'left'}}>Formato</th>
+                        <th style={{padding: '8px', textAlign: 'left'}}>Cor</th>
+                        <th style={{padding: '8px', textAlign: 'right'}}>Pacote (kg)</th>
+                        <th style={{padding: '8px', textAlign: 'right'}}>Produção (kg)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lancamento.itens.map((item, index) => (
+                        <tr key={index} style={{borderBottom: '1px solid #e2e8f0'}}>
+                          <td style={{padding: '8px'}}>{item.formato || '-'}</td>
+                          <td style={{padding: '8px'}}>{item.cor || '-'}</td>
+                          <td style={{padding: '8px', textAlign: 'right'}}>{formatarKg(item.pacote_kg)}</td>
+                          <td style={{padding: '8px', textAlign: 'right', fontWeight: '600', color: '#15803d'}}>{formatarKg(item.producao_kg)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Totais */}
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px'}}>
+                <div style={{background: '#dcfce7', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+                  <span style={{fontSize: '11px', color: '#15803d', display: 'block'}}>Produção Total</span>
+                  <strong style={{fontSize: '18px', color: '#166534'}}>
+                    {formatarKg(lancamento.itens.reduce((acc, item) => acc + (parseFloat(item.producao_kg) || 0), 0))} kg
+                  </strong>
+                </div>
+                <div style={{background: '#fee2e2', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+                  <span style={{fontSize: '11px', color: '#dc2626', display: 'block'}}>Orelha</span>
+                  <strong style={{fontSize: '18px', color: '#b91c1c'}}>
+                    {formatarKg(lancamento.orelha_kg)} kg
+                  </strong>
+                </div>
+                <div style={{background: '#fee2e2', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+                  <span style={{fontSize: '11px', color: '#dc2626', display: 'block'}}>Aparas</span>
+                  <strong style={{fontSize: '18px', color: '#b91c1c'}}>
+                    {formatarKg(lancamento.aparas_kg)} kg
+                  </strong>
+                </div>
+                <div style={{background: '#fef3c7', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+                  <span style={{fontSize: '11px', color: '#d97706', display: 'block'}}>Perdas Total</span>
+                  <strong style={{fontSize: '18px', color: '#b45309'}}>
+                    {formatarKg((parseFloat(lancamento.orelha_kg) || 0) + (parseFloat(lancamento.aparas_kg) || 0))} kg
+                  </strong>
+                </div>
+                <div style={{background: '#e0e7ff', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+                  <span style={{fontSize: '11px', color: '#4338ca', display: 'block'}}>% Perdas</span>
+                  <strong style={{fontSize: '18px', color: '#3730a3'}}>
+                    {(() => {
+                      const producaoTotal = lancamento.itens.reduce((acc, item) => acc + (parseFloat(item.producao_kg) || 0), 0);
+                      const perdasTotal = (parseFloat(lancamento.orelha_kg) || 0) + (parseFloat(lancamento.aparas_kg) || 0);
+                      return producaoTotal > 0 ? ((perdasTotal / producaoTotal) * 100).toFixed(2) : '0.00';
+                    })()}%
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{display: 'flex', gap: '10px'}}>
