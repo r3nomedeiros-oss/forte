@@ -21,16 +21,21 @@ function Lancamentos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const carregarLancamentos = async () => {
+  const carregarLancamentos = async (dataInicioParam, dataFimParam, referenciaParam) => {
     try {
+      // Usa parâmetros se fornecidos, senão usa os estados
+      const dataInicio = dataInicioParam !== undefined ? dataInicioParam : filtroDataInicio;
+      const dataFim = dataFimParam !== undefined ? dataFimParam : filtroDataFim;
+      const referencia = referenciaParam !== undefined ? referenciaParam : filtroReferencia;
+      
       // Adiciona timestamp para evitar cache do navegador
       let url = `${API_URL}/lancamentos?t=${new Date().getTime()}`;
       
-      if (filtroDataInicio) url += `&data_inicio=${filtroDataInicio}`;
-      if (filtroDataFim) url += `&data_fim=${filtroDataFim}`;
+      if (dataInicio) url += `&data_inicio=${dataInicio}`;
+      if (dataFim) url += `&data_fim=${dataFim}`;
       
       // Trim para remover espaços extras e enviar o filtro
-      const refTrimmed = filtroReferencia.trim();
+      const refTrimmed = referencia.trim();
       if (refTrimmed) url += `&referencia_producao=${encodeURIComponent(refTrimmed)}`;
 
       console.log('Buscando lançamentos com URL:', url); // Debug
@@ -41,6 +46,17 @@ function Lancamentos() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleFiltrar = () => {
+    carregarLancamentos(filtroDataInicio, filtroDataFim, filtroReferencia);
+  };
+  
+  const handleLimparFiltros = () => {
+    setFiltroDataInicio('');
+    setFiltroDataFim('');
+    setFiltroReferencia('');
+    carregarLancamentos('', '', '');
   };
 
   const deletarLancamento = async (id) => {
@@ -206,7 +222,7 @@ function Lancamentos() {
           </div>
           <div style={{display: 'flex', gap: '10px'}}>
             <button 
-              onClick={carregarLancamentos} 
+              onClick={handleFiltrar} 
               className="btn btn-primary" 
               style={{padding: '10px 20px'}}
             >
@@ -215,13 +231,7 @@ function Lancamentos() {
             </button>
             {(filtroDataInicio || filtroDataFim || filtroReferencia) && (
               <button 
-                onClick={() => {
-                  setFiltroDataInicio('');
-                  setFiltroDataFim('');
-                  setFiltroReferencia('');
-                  // Usar setTimeout para garantir que os estados foram limpos antes de carregar
-                  setTimeout(carregarLancamentos, 0);
-                }} 
+                onClick={handleLimparFiltros} 
                 className="btn btn-secondary" 
                 style={{padding: '10px 20px'}}
               >
