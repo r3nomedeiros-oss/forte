@@ -88,6 +88,7 @@ def listar_lancamentos():
     try:
         data_inicio = request.args.get('data_inicio')
         data_fim = request.args.get('data_fim')
+        referencia_producao = request.args.get('referencia_producao')
         
         query = supabase.table("lancamentos").select("*")
         
@@ -95,6 +96,12 @@ def listar_lancamentos():
             query = query.gte("data", data_inicio)
         if data_fim:
             query = query.lte("data", data_fim)
+        
+        # Filtro por referência - trim e case-insensitive
+        if referencia_producao:
+            ref_trimmed = referencia_producao.strip()
+            if ref_trimmed:
+                query = query.ilike("referencia_producao", f"%{ref_trimmed}%")
             
         response = query.order("data", desc=True).order("hora", desc=True).execute()
         lancamentos = response.data
