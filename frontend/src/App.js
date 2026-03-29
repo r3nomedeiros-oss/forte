@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { VariaveisProvider } from './contexts/VariaveisContext';
 import Dashboard from './pages/Dashboard';
 import NovoLancamento from './pages/NovoLancamento';
 import Lancamentos from './pages/Lancamentos';
@@ -183,7 +184,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <VariaveisProvider>
+        <AppContent />
+      </VariaveisProvider>
     </Router>
   );
 }

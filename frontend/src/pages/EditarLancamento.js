@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useVariaveis } from '../contexts/VariaveisContext';
 import { Plus, Trash2, Save, ArrowLeft, Eye } from 'lucide-react';
 
 // Função para formatar data
@@ -23,7 +24,7 @@ function EditarLancamento() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [carregando, setCarregando] = useState(true);
-  const [variaveis, setVariaveis] = useState({ turnos: [], formatos: [], cores: [] });
+  const { variaveis } = useVariaveis();
   
   const [lancamento, setLancamento] = useState({
     data: '',
@@ -42,19 +43,7 @@ function EditarLancamento() {
 
   const carregarDados = async () => {
     try {
-      // Carregar variáveis e lançamento em paralelo
-      const [variaveisRes, lancamentoRes] = await Promise.all([
-        axios.get(`${API_URL}/variaveis`),
-        axios.get(`${API_URL}/lancamentos/${id}`)
-      ]);
-      
-      const data = variaveisRes.data;
-      setVariaveis({
-        turnos: data.filter(v => v.tipo === 'turno'),
-        formatos: data.filter(v => v.tipo === 'formato'),
-        cores: data.filter(v => v.tipo === 'cor')
-      });
-      
+      const lancamentoRes = await axios.get(`${API_URL}/lancamentos/${id}`);
       setLancamento(lancamentoRes.data);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);

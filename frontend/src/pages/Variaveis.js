@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useVariaveis } from '../contexts/VariaveisContext';
 import { Plus, Trash2, Settings, RefreshCw, MoveUp, MoveDown } from 'lucide-react';
 
 const API_URL = (process.env.REACT_APP_BACKEND_URL || '') + '/api';
@@ -10,6 +11,7 @@ function Variaveis() {
   const [novaVariavel, setNovaVariavel] = useState({ tipo: 'turno', nome: '' });
   const [salvando, setSalvando] = useState(false);
   const [movendo, setMovendo] = useState(null);
+  const { refreshVariaveis } = useVariaveis();
 
   useEffect(() => {
     carregarVariaveis();
@@ -39,6 +41,7 @@ function Variaveis() {
       await axios.post(`${API_URL}/variaveis`, novaVariavel);
       setNovaVariavel({ ...novaVariavel, nome: '' });
       carregarVariaveis();
+      refreshVariaveis(); // Atualiza o cache global
     } catch (error) {
       if (error.response?.data?.error === 'Variável já existe') {
         alert('Esta variável já existe!');
@@ -57,6 +60,7 @@ function Variaveis() {
     try {
       await axios.delete(`${API_URL}/variaveis/${id}`);
       carregarVariaveis();
+      refreshVariaveis(); // Atualiza o cache global
     } catch (error) {
       console.error('Erro ao deletar variável:', error);
       alert('Erro ao deletar variável');
@@ -87,6 +91,7 @@ function Variaveis() {
     try {
       await axios.put(`${API_URL}/variaveis/ordem`, { variaveis: ordemAtualizada });
       await carregarVariaveis();
+      refreshVariaveis(); // Atualiza o cache global
     } catch (error) {
       console.error('Erro ao mover:', error);
       alert('Erro ao mover item');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useVariaveis } from '../contexts/VariaveisContext';
 import { Plus, Trash2, Save, Eye } from 'lucide-react';
 
 const API_URL = (process.env.REACT_APP_BACKEND_URL || '') + '/api';
@@ -21,7 +22,7 @@ const formatarKg = (valor) => {
 function NovoLancamento() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [variaveis, setVariaveis] = useState({ turnos: [], formatos: [], cores: [] });
+  const { variaveis } = useVariaveis();
   
   const [lancamento, setLancamento] = useState({
     data: new Date().toISOString().split('T')[0],
@@ -34,24 +35,6 @@ function NovoLancamento() {
       { formato: '', cor: '', pacote_kg: '', producao_kg: '' }
     ]
   });
-
-  // Carregar variáveis do sistema
-  useEffect(() => {
-    const carregarVariaveis = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/variaveis`);
-        const data = response.data;
-        setVariaveis({
-          turnos: data.filter(v => v.tipo === 'turno'),
-          formatos: data.filter(v => v.tipo === 'formato'),
-          cores: data.filter(v => v.tipo === 'cor')
-        });
-      } catch (error) {
-        console.error('Erro ao carregar variáveis:', error);
-      }
-    };
-    carregarVariaveis();
-  }, []);
 
   // Atualizar hora automaticamente a cada minuto (sem segundos)
   useEffect(() => {
