@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useDados } from '../contexts/DadosContext';
 import { Download, FileText, FileSpreadsheet, ChevronDown, ChevronRight } from 'lucide-react';
 
 const API_URL = (process.env.REACT_APP_BACKEND_URL || '') + '/api';
@@ -9,6 +10,7 @@ const formatarKg = (valor) => {
 };
 
 function Relatorios() {
+  const { statsMensal, carregarStatsMensal } = useDados();
   const [periodo, setPeriodo] = useState('mensal');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
@@ -25,6 +27,15 @@ function Relatorios() {
   }, [periodo]);
 
   const gerarRelatorio = async () => {
+    // Se é mensal sem filtro de referência, usa o cache
+    if (periodo === 'mensal' && !referenciaProducao.trim()) {
+      const cached = await carregarStatsMensal();
+      if (cached) {
+        setRelatorio(cached);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       let url = `${API_URL}/relatorios?periodo=${periodo}`;
