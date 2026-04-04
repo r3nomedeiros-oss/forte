@@ -70,6 +70,57 @@ export const DadosProvider = ({ children }) => {
     }
   }, [lancamentos]);
 
+  // Função para encontrar o último mês com lançamentos
+  const encontrarUltimoPeriodoComDados = useCallback(async () => {
+    try {
+      // Buscar todos os lançamentos (sem filtro)
+      const response = await axios.get(`${API_URL}/lancamentos?t=${Date.now()}`);
+      const todosLancamentos = response.data;
+      
+      if (!todosLancamentos || todosLancamentos.length === 0) {
+        // Se não há lançamentos, retorna mês atual mesmo
+        const hoje = new Date();
+        return {
+          ano: hoje.getFullYear(),
+          mes: hoje.getMonth() + 1,
+          data_inicio: new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0],
+          data_fim: new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0]
+        };
+      }
+      
+      // Ordenar lançamentos por data (mais recente primeiro)
+      const lancamentosOrdenados = todosLancamentos.sort((a, b) => {
+        return new Date(b.data) - new Date(a.data);
+      });
+      
+      // Pegar a data do lançamento mais recente
+      const dataUltimoLancamento = new Date(lancamentosOrdenados[0].data + 'T00:00:00');
+      const ano = dataUltimoLancamento.getFullYear();
+      const mes = dataUltimoLancamento.getMonth() + 1;
+      
+      // Calcular primeiro e último dia do mês
+      const primeiroDia = new Date(ano, mes - 1, 1);
+      const ultimoDia = new Date(ano, mes, 0);
+      
+      return {
+        ano,
+        mes,
+        data_inicio: primeiroDia.toISOString().split('T')[0],
+        data_fim: ultimoDia.toISOString().split('T')[0]
+      };
+    } catch (error) {
+      console.error('Erro ao encontrar último período:', error);
+      // Em caso de erro, retorna mês atual
+      const hoje = new Date();
+      return {
+        ano: hoje.getFullYear(),
+        mes: hoje.getMonth() + 1,
+        data_inicio: new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0],
+        data_fim: new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().split('T')[0]
+      };
+    }
+  }, []);
+
   // Carregar stats mensais com cache (para Dashboard)
   const carregarStatsMensal = useCallback(async (forceRefresh = false) => {
     if (!forceRefresh && lastFetchStatsRef.current && 
@@ -80,17 +131,34 @@ export const DadosProvider = ({ children }) => {
 
     setLoadingStats(true);
     try {
-      const response = await axios.get(`${API_URL}/relatorios?periodo=mensal&t=${Date.now()}`);
-      setStatsMensal(response.data);
+      // Encontrar o último período com dados
+      const periodo = await encontrarUltimoPeriodoComDados();
+      
+      // Buscar relatório para esse período específico
+      const response = await axios.get(
+        `${API_URL}/relatorios?periodo=customizado&data_inicio=${periodo.data_inicio}&data_fim=${periodo.data_fim}&t=${Date.now()}`
+      );
+      
+      // Adicionar informação do período aos dados
+      const statsComPeriodo = {
+        ...response.data,
+        periodo_referencia: {
+          ano: periodo.ano,
+          mes: periodo.mes,
+          mesNome: new Date(periodo.ano, periodo.mes - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+        }
+      };
+      
+      setStatsMensal(statsComPeriodo);
       lastFetchStatsRef.current = Date.now();
-      return response.data;
+      return statsComPeriodo;
     } catch (error) {
       console.error('Erro ao carregar stats:', error);
       return statsMensal;
     } finally {
       setLoadingStats(false);
     }
-  }, [statsMensal]);
+  }, [statsMensal, encontrarUltimoPeriodoComDados]);
 
   // Invalidar cache após criar/editar/deletar lançamento
   const invalidarCache = useCallback(() => {
