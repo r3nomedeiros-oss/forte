@@ -291,7 +291,7 @@ function Relatorios() {
             </div>
           </div>
 
-          <div className="card" style={{marginBottom: '30px', borderLeft: '5px solid #15803d'}}>
+          <div className="card" style={{marginBottom: '30px'}}>
             <div 
               onClick={() => setItensExpandido(!itensExpandido)}
               style={{
@@ -302,7 +302,7 @@ function Relatorios() {
                 userSelect: 'none'
               }}
             >
-              <h2 style={{marginBottom: itensExpandido ? '20px' : '0', color: '#15803d', display: 'flex', alignItems: 'center', gap: '10px'}}>
+              <h2 style={{marginBottom: itensExpandido ? '20px' : '0', display: 'flex', alignItems: 'center', gap: '10px'}}>
                 {itensExpandido ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
                 Produção por Itens (Formato e Cor)
                 <span style={{
@@ -316,7 +316,7 @@ function Relatorios() {
               </h2>
               <span style={{
                 fontSize: '12px',
-                color: '#15803d',
+                color: '#64748b',
                 fontWeight: '600',
                 padding: '4px 12px',
                 background: '#f0fdf4',
